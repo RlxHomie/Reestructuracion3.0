@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simulador de Reestructuración DMD</title>
+    <link rel="icon" type="image/png" href="assets/favicon.png">
+    <link rel="stylesheet" href="css/styles.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script> <!-- Versión específica para estabilidad -->
+</head>
+<body>
+    <div id="indicadorCarga" aria-live="polite" aria-atomic="true">
+        <div class="spinner"></div>
+        <p id="mensajeCarga">Cargando...</p>
+    </div>
+
+    <header>
+        <div class="logo-container">
+            <img src="assets/DMD-LOGO.png" alt="Logo DMD" class="logo">
+        </div>
+        <h1>Simulador de Reestructuración</h1>
+    </header>
+
+    <main>
+        <section id="simulador" aria-labelledby="simulador-titulo">
+            <h2 id="simulador-titulo" class="sr-only">Formulario del Simulador de Reestructuración</h2>
+            <div class="card">
+                <div class="card-header">
+                    <h3>Datos del Cliente</h3>
+                </div>
+                <div class="card-body">
+                    <div class="form-group">
+                        <label for="nombreDeudor">Nombre del Cliente:</label>
+                        <input type="text" id="nombreDeudor" placeholder="Nombre completo del cliente" required aria-required="true">
+                    </div>
+                    <div class="form-group">
+                        <label for="numCuotas">Número de Cuotas:</label>
+                        <input type="number" id="numCuotas" value="12" min="1" max="120" required aria-required="true">
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <h3>Deudas a Reestructurar</h3>
+                    <button id="btnAgregarFila" type="button" class="btn-primary">
+                        <svg class="icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24">
+                            <path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                        </svg>
+                        Agregar Deuda
+                    </button>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="tabla-deudas" aria-label="Tabla de deudas a reestructurar">
+                            <thead>
+                                <tr>
+                                    <th scope="col">Número Contrato</th>
+                                    <th scope="col">Tipo Producto</th>
+                                    <th scope="col">Entidad</th>
+                                    <th scope="col">Importe Deuda (€)</th>
+                                    <th scope="col">% Descuento</th>
+                                    <th scope="col">Importe con Descuento (€)</th>
+                                    <th scope="col">Acción</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tablaDeudas">
+                                <!-- Filas agregadas dinámicamente -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="card-footer">
+                    <button id="btnCalcular" type="button" class="btn-primary">
+                        <svg class="icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24">
+                            <path d="M9 7h6m-6 4h6m-6 4h6M5 3h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none" />
+                        </svg>
+                        Calcular Plan
+                    </button>
+                    <button id="btnReAnalizar" type="button" class="btn-secondary">
+                        <svg class="icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24">
+                            <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none" />
+                            <path d="M3 3v5h5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none" />
+                        </svg>
+                        Reiniciar Simulador
+                    </button>
+                    <button id="btnMostrarHistorial" type="button" class="btn-secondary">
+                        <svg class="icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24">
+                            <path d="M12 8v4l3 3m6-3a9 9 0 1 1-18 0 9 9 0 0 1 18 0z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none" />
+                        </svg>
+                        Ver Historial
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <section id="planContainerOuter" style="display: none;" aria-labelledby="plan-titulo">
+            <h2 id="plan-titulo" class="sr-only">Detalle del Plan de Liquidación</h2>
+            <div id="plan-de-liquidacion" class="pdf-export-container">
+                <div class="plan-header">
+                    <div class="plan-logo">
+                        <img src="assets/DMD-LOGO.png" alt="Logo DMD" class="logo">
+                    </div>
+                    <h3>Plan de Liquidación de Deudas</h3>
+                </div>
+
+                <div class="plan-info-cliente">
+                    <div class="plan-info-grupo">
+                        <div class="plan-info-item">
+                            <span class="plan-label">Cliente:</span>
+                            <span id="plan-nombre-deudor" class="plan-value"></span>
+                        </div>
+                        <div class="plan-info-item">
+                            <span class="plan-label">Número de Deudas:</span>
+                            <span id="plan-num-deudas" class="plan-value"></span>
+                        </div>
+                        <div class="plan-info-item">
+                            <span class="plan-label">Deuda Total Original:</span>
+                            <span id="plan-deuda-total" class="plan-value"></span>
+                        </div>
+                    </div>
+                    <div class="plan-info-grupo">
+                        <div class="plan-info-item">
+                            <span class="plan-label">Folio del Plan:</span>
+                            <span id="plan-folio" class="plan-value"></span>
+                        </div>
+                        <div class="plan-info-item">
+                            <span class="plan-label">Fecha de Creación:</span>
+                            <span id="plan-fecha" class="plan-value"></span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="plan-resumen">
+                    <div class="plan-grafico-container">
+                        <canvas id="myChart" aria-label="Gráfico de ahorro"></canvas>
+                        <div class="plan-grafico-leyenda">
+                            <div class="leyenda-item">
+                                <span class="leyenda-color" style="background-color: #0071e3;"></span>
+                                <span class="leyenda-texto">Total a Pagar</span>
+                            </div>
+                            <div class="leyenda-item">
+                                <span class="leyenda-color" style="background-color: #34c759;"></span>
+                                <span class="leyenda-texto">Ahorro Total</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="plan-resumen-datos">
+                        <div class="plan-resumen-item">
+                            <span class="plan-resumen-label">Deuda Original Total:</span>
+                            <span id="plan-lo-que-debes" class="plan-resumen-value"></span>
+                        </div>
+                        <div class="plan-resumen-item">
+                            <span class="plan-resumen-label">Nuevo Total a Pagar:</span>
+                            <span id="plan-lo-que-pagarias" class="plan-resumen-value"></span>
+                        </div>
+                        <div class="plan-resumen-item destacado">
+                            <span class="plan-resumen-label">Ahorro Total Estimado:</span>
+                            <span id="plan-ahorro" class="plan-resumen-value"></span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="plan-detalles">
+                    <h4>Detalles Adicionales del Plan</h4>
+                    <div class="plan-detalles-grid">
+                        <div class="plan-detalle-item">
+                            <div class="plan-detalle-icono" aria-hidden="true">
+                                <svg class="icon" viewBox="0 0 24 24">
+                                    <path d="M12 8v4l3 3m6-3a9 9 0 1 1-18 0 9 9 0 0 1 18 0z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none" />
+                                </svg>
+                            </div>
+                            <div class="plan-detalle-info">
+                                <span class="plan-detalle-label">Duración del Plan</span>
+                                <span id="plan-duracion" class="plan-detalle-value"></span>
+                            </div>
+                        </div>
+                        <div class="plan-detalle-item">
+                            <div class="plan-detalle-icono" aria-hidden="true">
+                                <svg class="icon" viewBox="0 0 24 24">
+                                    <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none" />
+                                </svg>
+                            </div>
+                            <div class="plan-detalle-info">
+                                <span class="plan-detalle-label">Cuota Mensual Estimada</span>
+                                <span id="plan-cuota-mensual" class="plan-detalle-value"></span>
+                            </div>
+                        </div>
+                        <div class="plan-detalle-item">
+                            <div class="plan-detalle-icono" aria-hidden="true">
+                                <svg class="icon" viewBox="0 0 24 24">
+                                    <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none" />
+                                    <path d="M7 7h.01" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none" />
+                                </svg>
+                            </div>
+                            <div class="plan-detalle-info">
+                                <span class="plan-detalle-label">% Descuento Promedio</span>
+                                <span id="plan-descuento-total" class="plan-detalle-value"></span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="plan-tabla-container">
+                    <h4>Desglose de Deudas Incluidas</h4>
+                    <table class="plan-tabla" aria-label="Desglose de deudas en el plan">
+                        <thead>
+                            <tr>
+                                <th scope="col">Entidad</th>
+                                <th scope="col">Deuda Original (€)</th>
+                                <th scope="col">Deuda con Descuento (€)</th>
+                            </tr>
+                        </thead>
+                        <tbody id="plan-tabla-body">
+                            <!-- Filas agregadas dinámicamente -->
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="plan-footer">
+                    <p>Este plan es una simulación y está sujeto a aprobación final. Los valores son estimaciones.</p>
+                    <p>Para más información, contacte con su asesor financiero de DMD.</p>
+                </div>
+            </div>
+
+            <div class="plan-actions">
+                <button id="btnDescargarPlan" type="button" class="btn-primary">
+                    <svg class="icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24">
+                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none" />
+                    </svg>
+                    Descargar PDF del Plan
+                </button>
+                <button id="btnExportarJSON" type="button" class="btn-info">
+                     <svg class="icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24">
+                         <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+                         <path d="M4 10h16" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+                    </svg>
+                    Exportar Datos (JSON)
+                </button>
+                <button id="btnContratar" type="button" class="btn-success">
+                    <svg class="icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24">
+                        <path d="M9 12l2 2 4-4m6 2a9 9 0 1 1-18 0 9 9 0 0 1 18 0z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none" />
+                    </svg>
+                    Guardar Contrato (JSON)
+                </button>
+                <button id="btnEditarContrato" type="button" class="btn-secondary" style="display: none;">
+                    <svg class="icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24">
+                        <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7m-4-7l4-4m-4 4l-8 8v4h4l8-8m0-4l4-4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none" />
+                    </svg>
+                    Editar Contrato Cargado
+                </button>
+            </div>
+        </section>
+
+        <div id="historialContainer" class="modal" style="display: none;" role="dialog" aria-modal="true" aria-labelledby="historial-titulo-modal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3 id="historial-titulo-modal">Historial de Contratos Guardados</h3>
+                    <button id="btnCerrarHistorial" type="button" class="btn-cerrar" aria-label="Cerrar historial">
+                        <svg class="icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24">
+                            <path d="M18 6L6 18M6 6l12 12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                        </svg>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label for="inputCargarHistorial">Seleccionar archivo(s) JSON de contratos:</label>
+                        <input type="file" id="inputCargarHistorial" accept=".json" multiple>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="tabla-historial" aria-label="Tabla de contratos en historial">
+                            <thead>
+                                <tr>
+                                    <th scope="col">Folio</th>
+                                    <th scope="col">Fecha</th>
+                                    <th scope="col">Cliente</th>
+                                    <th scope="col">Nº Deudas</th>
+                                    <th scope="col">Deuda Original (€)</th>
+                                    <th scope="col">Total a Pagar (€)</th>
+                                    <th scope="col">Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody id="historialBody">
+                                <!-- Filas agregadas dinámicamente -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <footer>
+        <p>&copy; <span id="currentYear">2023</span> DMD - Todos los derechos reservados</p>
+    </footer>
+
+    <!-- Scripts -->
+    <script src="libs/html2canvas.min.js"></script>
+    <script src="libs/jspdf.umd.min.js"></script>
+    <script src="libs/html2pdf.bundle.min.js"></script>
+    <script src="js/main.js"></script>
+</body>
+</html>
+
