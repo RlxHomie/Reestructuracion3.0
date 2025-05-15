@@ -6,7 +6,12 @@
     <title>Simulador de Reestructuración DMD</title>
     <link rel="icon" type="image/png" href="assets/favicon.png">
     <link rel="stylesheet" href="css/styles.css">
-    <script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script> <!-- Versión específica para estabilidad -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
+    <!-- jsPDF and autoTable are expected to be in libs/ and loaded globally by the original HTML structure -->
+    <!-- If they are not, they need to be added here or loaded dynamically -->
+    <script src="libs/jspdf.umd.min.js"></script>
+    <script src="libs/jspdf.plugin.autotable.js"></script> <!-- Assuming this is the correct autotable plugin file -->
+
 </head>
 <body>
     <div id="indicadorCarga" aria-live="polite" aria-atomic="true">
@@ -206,8 +211,12 @@
                     <table class="plan-tabla" aria-label="Desglose de deudas en el plan">
                         <thead>
                             <tr>
+                                <!-- Modified to match PDF output more closely -->
+                                <th scope="col">Nº Contrato</th>
+                                <th scope="col">Tipo Producto</th>
                                 <th scope="col">Entidad</th>
                                 <th scope="col">Deuda Original (€)</th>
+                                <th scope="col">% Desc.</th>
                                 <th scope="col">Deuda con Descuento (€)</th>
                             </tr>
                         </thead>
@@ -241,7 +250,7 @@
                     <svg class="icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24">
                         <path d="M9 12l2 2 4-4m6 2a9 9 0 1 1-18 0 9 9 0 0 1 18 0z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none" />
                     </svg>
-                    Guardar Contrato (JSON)
+                    Guardar Contrato (Historial)
                 </button>
                 <button id="btnEditarContrato" type="button" class="btn-secondary" style="display: none;">
                     <svg class="icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24">
@@ -263,24 +272,34 @@
                     </button>
                 </div>
                 <div class="modal-body">
-                    <div class="form-group">
-                        <label for="inputCargarHistorial">Seleccionar archivo(s) JSON de contratos:</label>
-                        <input type="file" id="inputCargarHistorial" accept=".json" multiple>
+                    <div class="historial-actions">
+                        <label for="inputCargarHistorial" class="btn-secondary btn-file-input">
+                            <svg class="icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24">
+                                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+                            </svg>
+                            Importar Historial (JSON)
+                        </label>
+                        <input type="file" id="inputCargarHistorial" accept=".json" multiple style="display: none;">
+                        <button id="btnLimpiarHistorial" type="button" class="btn-danger">
+                            <svg class="icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24">
+                                <path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2M10 11v6M14 11v6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+                            </svg>
+                            Limpiar Historial Local
+                        </button>
                     </div>
                     <div class="table-responsive">
-                        <table class="tabla-historial" aria-label="Tabla de contratos en historial">
+                        <table class="tabla-historial" aria-label="Tabla de historial de contratos">
                             <thead>
                                 <tr>
                                     <th scope="col">Folio</th>
                                     <th scope="col">Fecha</th>
                                     <th scope="col">Cliente</th>
-                                    <th scope="col">Nº Deudas</th>
-                                    <th scope="col">Deuda Original (€)</th>
                                     <th scope="col">Total a Pagar (€)</th>
+                                    <th scope="col">Cuotas (Mensual €)</th>
                                     <th scope="col">Acciones</th>
                                 </tr>
                             </thead>
-                            <tbody id="historialBody">
+                            <tbody id="tablaHistorialBody">
                                 <!-- Filas agregadas dinámicamente -->
                             </tbody>
                         </table>
@@ -291,14 +310,9 @@
     </main>
 
     <footer>
-        <p>&copy; <span id="currentYear">2023</span> DMD - Todos los derechos reservados</p>
+        <p>&copy; <span id="currentYear"></span> DMD. Todos los derechos reservados.</p>
     </footer>
 
-    <!-- Scripts -->
-    <script src="libs/html2canvas.min.js"></script>
-    <script src="libs/jspdf.umd.min.js"></script>
-    <script src="libs/html2pdf.bundle.min.js"></script>
-    <script src="js/main.js"></script>
+    <script type="module" src="js/AppController.js"></script>
 </body>
 </html>
-
