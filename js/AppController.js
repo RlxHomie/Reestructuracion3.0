@@ -60,6 +60,9 @@ const AppController = (() => {
             }
         });
         EventManager.subscribe("historialActualizado", UIManager.renderizarHistorial); // Re-render on update
+
+        // Load any stored contract history from IndexedDB
+        await DataService.inicializarHistorialDesdeIDB();
     }
     function handleCalcularPlan() {
         const $ = UIManager.getDOM(); // Use the new getter
