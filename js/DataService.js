@@ -110,8 +110,8 @@ export const DataService = (() => {
     async function limpiarHistorial() {
         historialMemoria = [];
         try {
-            await clear(); // idbClear will clear the entire database, or use idbDel(IDB_CONTRATOS_KEY)
-            // For safety, let's use del for the specific key if we only want to clear this app's history
+            await idbClear(); // Clear entire IndexedDB store
+            // For safety, also delete the specific key used by this app
             await idbDel(IDB_CONTRATOS_KEY);
             await set(IDB_CONTRATOS_KEY, []); // Ensure the key exists with an empty array after delete
             Utils.mostrarNotificacion("Historial local limpiado.", "success");
