@@ -1,0 +1,8 @@
+{
+  "name": "simulador-dmd",
+  "version": "1.0.0",
+  "description": "Simulador de Reestructuraci\u00f3n de Deuda DMD",
+  "scripts": {
+    "start": "node server.js"
+  }
+}

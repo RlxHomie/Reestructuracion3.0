@@ -78,9 +78,10 @@ El paquete final (`simulador_dmd_mejorado.zip`) contiene la siguiente estructura
 ## Cómo Ejecutar
 
 1.  Descomprime el archivo `simulador_dmd_mejorado.zip`.
-2.  Abre el archivo `index.html` en un navegador web moderno que soporte módulos ES6 e IndexedDB (ej. Chrome, Firefox, Edge).
+2.  Ejecuta `npm start` para iniciar un servidor local que servirá la aplicación en `http://localhost:8080`.
+3.  Abre `http://localhost:8080` en un navegador web moderno que soporte módulos ES6 e IndexedDB (ej. Chrome, Firefox, Edge).
 
-Debido al uso de módulos ES6 (`import`/`export`), algunos navegadores pueden requerir que los archivos se sirvan a través de un servidor web local (incluso para desarrollo) debido a restricciones de seguridad CORS al cargar módulos desde `file:///`. Una forma sencilla de hacerlo es usando la extensión "Live Server" en VSCode, o ejecutando un simple servidor HTTP en la carpeta del proyecto (e.g., `python -m http.server` o `npx serve`).
+Debido al uso de módulos ES6 (`import`/`export`), la aplicación debe servirse a través de un servidor local. Para facilitarlo se incluye `server.js` y un `package.json` con el comando `npm start`. También puedes usar la extensión "Live Server" de VSCode o ejecutar `python -m http.server`/`npx serve` si lo prefieres.
 
 ## Funcionalidades Específicas Implementadas (según solicitud original):
 
